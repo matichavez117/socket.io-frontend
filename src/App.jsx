@@ -7,7 +7,13 @@ import SendIcon from '@mui/icons-material/Send';
 import ChatIcon from '@mui/icons-material/Chat';
 import DeleteIcon from '@mui/icons-material/Delete';
 
-const socket = io('http://localhost:3000');
+//Conexion al web socket y definicion de token de usuario
+const socket = io('http://localhost:3000', {
+  auth: {
+    token: `socket-io-${Math.floor(Math.random() * 100000)}-token`,
+    userId: Math.floor(Math.random() * 100000).toString().padStart(5, '0')
+  }
+});
 
 function App() {
   const [isConnected, setIsConnected] = useState(false);
@@ -30,10 +36,15 @@ function App() {
       setMessages(messages => [...messages, data]);
     });
 
+    socket.on('notification', (data) => {
+      console.log('notificacion: ' + data);
+    })
+
     //Esto es importante para evitar eventos duplicados
     return () => {
       socket.off('connect');
-      socket.off('send_message')
+      socket.off('send_message');
+      socket.off('notification');
     };
 
   }, []);
@@ -70,9 +81,9 @@ function App() {
               </Grid>
               <Grid item container xs={6} sm={6} md={6} xl={6} justifyContent='flex-end'>
                 <Tooltip title='Borrar mensajes'>
-                <IconButton onClick={()=>setMessages([])} >
-                  <DeleteIcon sx={{color:'red'}}/>
-                </IconButton>
+                  <IconButton onClick={() => setMessages([])} >
+                    <DeleteIcon sx={{ color: 'red' }} />
+                  </IconButton>
                 </Tooltip>
               </Grid>
             </Grid>
